@@ -1,39 +1,101 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Image Loader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background-color: #f1f1f1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #imageForm {
+            display: flex; /* Use flexbox */
+            justify-content: center; /* Center the buttons horizontally */
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 10px; /* Spacing between buttons */
+            padding: 20px;
+        }
+
+        #imageForm label {
+            margin-bottom: 5px;
+        }
+
+        #imageForm input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        #imageForm input[type="checkbox"] {
+            margin-bottom: 10px;
+        }
+
+        #imageForm button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        #imageForm button:hover {
+            background-color: #45a049;
+        }
+
+        #imageContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            background-color: #f1f1f1;
+        }
+
+        #imageContainer img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
 </head>
+
 <body>
     <h1>Browse on Random Images!</h1>
     <div id="imageContainer"></div>
     <form id="imageForm">
-    <div>
-        <label for="width">Width:</label>
-        <input type="range" id="width" min="100" max="800" step="1" value="400">
-        <span id="widthValue">400</span> px
-        <br>
-    </div>
-    
-    <div>
-        <label for="height">Height:</label>
-        <input type="range" id="height" min="100" max="600" step="1" value="300">
-        <span id="heightValue">300</span> px
-        <br>
-    </div>
+        <div>
+            <label for="width">Width:</label>
+            <input type="range" id="width" min="100" max="800" step="1" value="400">
+            <span id="widthValue">400</span> px
+        </div>
 
-    <div>
-        <label for="grayscale">Grayscale:</label>
-        <input type="checkbox" id="grayscale">
-    </div>
-        <br>
+        <div>
+            <label for="height">Height:</label>
+            <input type="range" id="height" min="100" max="600" step="1" value="300">
+            <span id="heightValue">300</span> px
+        </div>
 
-        <div><button type="button" id="getImage">Get Image!</button></div> 
+        <div>
+            <label for="grayscale">Grayscale:</label>
+            <input type="checkbox" id="grayscale">
+        </div>
+
+        <button type="button" id="getImage">Get Image!</button>
+        <button type="button" id="downloadImage">Download Image!</button>
+
     </form>
-
-    
 
     <script>
         const imageForm = document.getElementById("imageForm");
@@ -44,47 +106,62 @@
         const grayscaleCheckbox = document.getElementById("grayscale");
         const imageContainer = document.getElementById("imageContainer");
         const getImageButton = document.getElementById("getImage");
+        const downloadImageButton = document.getElementById("downloadImage");
 
-
-        //setting the value of width as input by user
         widthInput.addEventListener("input", () => {
             widthValue.textContent = widthInput.value;
         });
 
-
-        //setting the value of height as input by user
         heightInput.addEventListener("input", () => {
             heightValue.textContent = heightInput.value;
         });
 
-
-        //getting image on click of button
         getImageButton.addEventListener("click", () => {
             const width = widthInput.value;
             const height = heightInput.value;
             const grayscale = grayscaleCheckbox.checked;
 
             const imageUrl = `https://picsum.photos/${grayscale ? "g" : ""}/${width}/${height}`;
-            
+
             fetch(imageUrl)
-                .then(response => response.blob()) //storing the response as blob
+                .then(response => response.blob())
                 .then(blob => {
-                    // Create and display the image
                     const image = document.createElement("img");
                     image.src = URL.createObjectURL(blob);
                     image.alt = "Image from https://picsum.photos";
-
-                    //Remove existing image
-                    //Clear the contents of imageContainer
                     imageContainer.innerHTML = '';
-
-                    // Append the new image
                     imageContainer.appendChild(image);
+                    imageContainer.dataset.imageUrl = imageUrl;
                 })
                 .catch(error => {
                     console.error("Error:", error);
                 });
         });
+
+        downloadImageButton.addEventListener("click", () => {
+            const imageUrl = imageContainer.dataset.imageUrl;
+            if (imageUrl) {
+                fetch(imageUrl)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = "downloadImage.jpg";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                    });
+            } else {
+                console.error("No image available to download.");
+            }
+        });
+
     </script>
 </body>
+
 </html>
